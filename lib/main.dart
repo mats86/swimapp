@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'CustomerDashboard.dart';
+import 'CustomerList.dart';
+import 'SignUpScreen.dart';
+import 'SwimCourseScreen.dart';
+import 'SwimPoolScreen.dart';
+import 'logic/models/theme.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -18,8 +23,7 @@ class _MyAppState extends State<MyApp> {
   bool get useLightMode {
     switch (_themeMode) {
       case ThemeMode.system:
-        return SchedulerBinding.instance.window.platformBrightness ==
-            Brightness.light;
+        return MediaQuery.of(context).platformBrightness == Brightness.light;
       case ThemeMode.light:
         return true;
       case ThemeMode.dark:
@@ -27,27 +31,22 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Demo',
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
       home: MyHomePage(
-        title: 'Material 3 Demo',
+        title: 'Schwimmschule Allgäu',
         useLightMode: useLightMode,
-        handleBrightnessChange: (useLightMode) => setState(() {
-          _themeMode = useLightMode ? ThemeMode.light : ThemeMode.dark;
-        }),
+        handleBrightnessChange: (useLightMode) {
+          setState(() {
+            _themeMode = useLightMode ? ThemeMode.light : ThemeMode.dark;
+          });
+        },
       ),
     );
   }
@@ -55,11 +54,12 @@ class _MyAppState extends State<MyApp> {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
-    super.key,
+    Key? key,
     required this.title,
     required this.handleBrightnessChange,
     required this.useLightMode,
-  });
+  }) : super(key: key);
+
   final String title;
   final bool useLightMode;
   final void Function(bool useLightMode) handleBrightnessChange;
@@ -69,12 +69,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  Widget _buildElevatedButton(String text, void Function() onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(220, 40),
+      ),
+      child: Text(text, style: Theme.of(context).textTheme.bodyLarge),
+    );
   }
 
   @override
@@ -82,6 +84,10 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset("assets/images/cropped-Logo-Wassermenschen.png"),
+        ),
         actions: <Widget>[
           _BrightnessButton(
             handleBrightnessChange: widget.handleBrightnessChange,
@@ -89,25 +95,85 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-              style: Theme.of(context).textTheme.bodyLarge,
+        child: Container(
+          constraints: const BoxConstraints.expand(),
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/images/WM-Head-BG.jpg"),
+              fit: BoxFit.cover,
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              _buildElevatedButton('Schwimmkurs buchen', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SignUpScreen(),
+                  ),
+                );
+              }),
+              const SizedBox(
+                height: 8.0,
+              ),
+              _buildElevatedButton('Schwimmbäder', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SwimPoolScreen(),
+                  ),
+                );
+              }),
+              const SizedBox(
+                height: 8.0,
+              ),
+              _buildElevatedButton('Kurse', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SwimCourseScreen(),
+                  ),
+                );
+              }),
+              const SizedBox(
+                height: 8.0,
+              ),
+              _buildElevatedButton('Login', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CustomerDashboard(),
+                  ),
+                );
+              }),
+              const SizedBox(
+                height: 8.0,
+              ),
+              _buildElevatedButton('Kunde', () {
+                final List<Customer> customers = [
+                  Customer('Kunde 1', 'Aktiv'),
+                  Customer('Kunde 2', 'Inaktiv'),
+                  Customer('Kunde 3', ''),
+                  Customer('Kunde 4', ''),
+                  Customer('Kunde 5', ''),
+                ];
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CustomerList(customers),
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.large(
-        onPressed: _incrementCounter,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
